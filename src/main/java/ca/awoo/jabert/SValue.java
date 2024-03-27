@@ -1,6 +1,8 @@
 package ca.awoo.jabert;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class SValue {
@@ -41,9 +43,46 @@ public abstract class SValue {
         }
     }
     public static class SList extends SValue {
-        public final SValue[] value;
-        public SList(SValue[] value) {
+        public final List<SValue> value;
+        public SList(List<SValue> value) {
             this.value = value;
+        }
+        public SList(){
+            this.value = new ArrayList<SValue>();
+        }
+        public SList(SValue... values){
+            this();
+            for(SValue value : values){
+                this.value.add(value);
+            }
+        }
+
+        public SValue get(int index) {
+            return value.get(index);
+        }
+
+        public void add(SValue value) {
+            this.value.add(value);
+        }
+
+        public int size() {
+            return value.size();
+        }
+
+        public boolean isEmpty() {
+            return value.isEmpty();
+        }
+
+        public void remove(int index) {
+            value.remove(index);
+        }
+
+        public void clear() {
+            value.clear();
+        }
+
+        public void addAll(SList list) {
+            value.addAll(list.value);
         }
     }
     public static class SBool extends SValue {

@@ -38,9 +38,9 @@ public class SerializableSerializerTest {
             x = ((SNumber) so.get("x")).value.intValue();
             y = ((SString) so.get("y")).value;
             SList sl = (SList) so.get("z");
-            z = new double[sl.value.length];
-            for (int i = 0; i < sl.value.length; i++) {
-                z[i] = ((SNumber) sl.value[i]).value.doubleValue();
+            z = new double[sl.size()];
+            for (int i = 0; i < sl.size(); i++) {
+                z[i] = ((SNumber) sl.get(i)).value.doubleValue();
             }
         }
 
