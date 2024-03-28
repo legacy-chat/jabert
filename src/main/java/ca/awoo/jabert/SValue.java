@@ -2,8 +2,10 @@ package ca.awoo.jabert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class SValue {
     public static class SNumber extends SValue {
@@ -109,7 +111,7 @@ public abstract class SValue {
 
         
     }
-    public static class SList extends SValue {
+    public static class SList extends SValue implements Iterable<SValue>{
         public final List<SValue> value;
         public SList(List<SValue> value) {
             this.value = value;
@@ -179,6 +181,9 @@ public abstract class SValue {
                 return false;
             return true;
         }
+        public Iterator<SValue> iterator() {
+            return value.iterator();
+        }
         
     }
     public static class SBool extends SValue {
@@ -243,6 +248,10 @@ public abstract class SValue {
 
         public boolean isEmpty() {
             return value.isEmpty();
+        }
+
+        public Set<Map.Entry<String, SValue>> entrySet() {
+            return value.entrySet();
         }
 
         @Override

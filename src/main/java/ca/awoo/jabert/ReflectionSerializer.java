@@ -3,6 +3,11 @@ package ca.awoo.jabert;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import ca.awoo.fwoabl.Optional;
 import ca.awoo.fwoabl.OptionalNoneException;
@@ -59,6 +64,25 @@ public class ReflectionSerializer implements Serializer {
                         so.put(f.getName(), baseSerializer.serialize(opt.get()));
                     }
                     //If the field is optional and not present, don't put it in the final value
+                } else if (Map.class.isAssignableFrom(f.getType())) {
+                    Map<?, ?> map = (Map<?, ?>) value;
+                    ParameterizedType type = (ParameterizedType)f.getGenericType();
+                    Class<?> keyType = (Class<?>)type.getActualTypeArguments()[0];
+                    if(keyType != String.class){
+                        throw new SerializationException("Can only serialize Maps with String keys");
+                    }
+                    SObject mapObject = new SObject();
+                    for(Map.Entry<?, ?> entry : map.entrySet()){
+                        mapObject.put(entry.getKey().toString(), baseSerializer.serialize(entry.getValue()));
+                    }
+                    so.put(f.getName(), mapObject);
+                } else if (Collection.class.isAssignableFrom(f.getType())) {
+                    Collection<?> collection = (Collection<?>) value;
+                    SList list = new SList();
+                    for(Object o : collection){
+                        list.add(baseSerializer.serialize(o));
+                    }
+                    so.put(f.getName(), list);
                 } else {
                     so.put(f.getName(), baseSerializer.serialize(value));
                 }
@@ -75,6 +99,7 @@ public class ReflectionSerializer implements Serializer {
         return so;
     }
 
+    @SuppressWarnings("unchecked")
     public Object deserialize(SValue sv, Class<? extends Object> clazz) throws SerializationException {
         if(sv instanceof SNull){
             return null;
@@ -102,6 +127,40 @@ public class ReflectionSerializer implements Serializer {
                             //If the field is an optional and the value is not present, set the field to None
                             f.set(t, new Optional.None<Object>());
                         }
+                    } else if(Map.class.isAssignableFrom(f.getType())) {
+                        SObject mapObject = (SObject) so.get(f.getName());
+                        ParameterizedType type = (ParameterizedType)f.getGenericType();
+                        Class<?> keyType = (Class<?>)type.getActualTypeArguments()[0];
+                        if(keyType != String.class){
+                            throw new SerializationException("Can only serialize Maps with String keys");
+                        }
+                        Class<?> valueType = (Class<?>)type.getActualTypeArguments()[1];
+                        Map<String, Object> map;
+                        if(f.getType().equals(Map.class)){
+                            map = new HashMap<String,Object>();
+                        }else{
+                            map = (Map<String, Object>) f.getType().newInstance();
+                        }
+                        for(Map.Entry<String, SValue> entry : mapObject.entrySet()){
+                            map.put(entry.getKey(), baseSerializer.deserialize(entry.getValue(), valueType));
+                        }
+                        f.set(t, map);
+                    } else if (Collection.class.isAssignableFrom(f.getType())) {
+                        SList list = (SList) so.get(f.getName());
+                        ParameterizedType type = (ParameterizedType)f.getGenericType();
+                        Class<?> valueType = (Class<?>)type.getActualTypeArguments()[0];
+                        Collection<Object> collection;
+                        if(f.getType().equals(Collection.class) || f.getType().equals(List.class)){
+                            collection = new java.util.ArrayList<Object>();
+                        }else if(f.getType().equals(Set.class)){
+                            collection = new java.util.HashSet<Object>();
+                        }else{
+                            collection = (Collection<Object>) f.getType().newInstance();
+                        }
+                        for(SValue value : list){
+                            collection.add(baseSerializer.deserialize(value, valueType));
+                        }
+                        f.set(t, collection);
                     } else {
                         if(so.has(f.getName())){
                             f.set(t, baseSerializer.deserialize(so.get(f.getName()), f.getType()));
