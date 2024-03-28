@@ -14,13 +14,11 @@ import ca.awoo.fwoabl.function.Functions;
 import ca.awoo.fwoabl.function.Predicate;
 import ca.awoo.jabert.SValue.*;
 import ca.awoo.praser.Context;
-import ca.awoo.praser.FilterStream;
-import ca.awoo.praser.InputStreamOf;
 import ca.awoo.praser.ParseException;
-import ca.awoo.praser.ParsedStream;
 import ca.awoo.praser.Parser;
-import ca.awoo.praser.StreamContext;
 import ca.awoo.praser.StreamException;
+import ca.awoo.praser.FilterContext;
+import ca.awoo.praser.ParsedContext;
 
 import static ca.awoo.praser.Text.*;
 import static ca.awoo.praser.Combinators.*;
@@ -440,21 +438,23 @@ public class JsonFormat implements Format {
                 }
                 SObject values = new SObject();
                 while(true){
+                    SString key;
                     try{
-                        SString key = jsonStringParser.parse(context);
-                        JsonToken colon = context.next().get();
-                        if(!(colon instanceof JsonToken.Colon)){
-                            throw new ParseException(context, "Expected a colon token, but got: " + colon.getClass().getName());
-                        }
-                        try{ 
-                            SValue value = jsonParser.parse(context);
-                            values.put(key.value, value);
-                        }catch(ParseException e){
-                            throw new ParseException(context, "Failed to parse value for json object field: " + key.value, e);
-                        }
+                        key = jsonStringParser.parse(context);
                     } catch(ParseException e){
                         throw new ParseException(context, "Failed to parse json object key", e);
                     }
+                    JsonToken colon = context.next().get();
+                    if(!(colon instanceof JsonToken.Colon)){
+                        throw new ParseException(context, "Expected a colon token, but got: " + colon.getClass().getName());
+                    }
+                    try{ 
+                        SValue value = jsonParser.parse(context);
+                        values.put(key.value, value);
+                    }catch(ParseException e){
+                        throw new ParseException(context, "Failed to parse value for json object field: " + key.value, e);
+                    }
+
                     JsonToken comma = context.next().get();
                     if(comma instanceof JsonToken.Comma){
                         continue;
@@ -476,13 +476,13 @@ public class JsonFormat implements Format {
     
     public SValue parse(InputStream is) throws FormatException{
         Context<Character> charContext = contextFromStream(is, Charset.forName(encoding));
-        InputStreamOf<JsonToken> tokenStream = new FilterStream<JsonToken>(new ParsedStream<Character, JsonToken>(jsonTokenParser, charContext), new Predicate<JsonToken>() {
+        Context<JsonToken> tokenContext = new FilterContext<JsonToken>(new ParsedContext<Character, JsonToken>(charContext, jsonTokenParser), new Predicate<JsonToken>() {
             public boolean invoke(JsonToken token) {
                 return !(token instanceof JsonToken.Whitespace);
             }
         });
         try{
-            return jsonParser.parse(new StreamContext<JsonToken>(tokenStream));
+            return jsonParser.parse(tokenContext);
         } catch(ParseException e){
             throw new FormatException("Failed to parse json", e);
         }
