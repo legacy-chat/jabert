@@ -308,6 +308,17 @@ public class JsonFormat implements Format {
             return "JsonFalse";
         }
     };
+
+    private final Parser<Character, JsonToken.JsonNull> nullParser = new Parser<Character,JsonFormat.JsonToken.JsonNull>() {
+        public JsonToken.JsonNull parse(Context<Character> context) throws ParseException {
+            return new JsonToken.JsonNull(tag("null").parse(context));
+        }
+
+        @Override
+        public String toString(){
+            return "JsonNull";
+        }
+    };
     
     private final Parser<Character, JsonToken.Whitespace> whitespaceParser = new Parser<Character, JsonToken.Whitespace>() {
         public JsonToken.Whitespace parse(Context<Character> context) throws ParseException {
@@ -387,7 +398,7 @@ public class JsonFormat implements Format {
     };
     
     @SuppressWarnings("unchecked")
-    private final Parser<Character, JsonToken> jsonTokenParser = or(stringParser, numberParser, trueParser, falseParser, whitespaceParser, openBracketParser, closeBracketParser, openBraceParser, closeBraceParser, colonParser, commaParser);
+    private final Parser<Character, JsonToken> jsonTokenParser = or(stringParser, numberParser, trueParser, falseParser, whitespaceParser, nullParser, openBracketParser, closeBracketParser, openBraceParser, closeBraceParser, colonParser, commaParser);
     
     private final Parser<JsonToken, SValue> jsonParser;
 
@@ -493,10 +504,18 @@ public class JsonFormat implements Format {
                 SList values = new SList();
                 while(true){
                     try{
-                        SValue value = jsonParser.parse(context);
+                        Context<JsonToken> clone = context.clone();
+                        SValue value = jsonParser.parse(clone);
+                        context.skip(clone.getOffset() - context.getOffset());
                         values.add(value);
                     } catch(ParseException e){
-                        throw new ParseException(context, "Failed to parse json list value", e);
+                        //Check for empty list
+                        JsonToken next = context.next().get();
+                        if(next instanceof JsonToken.CloseBracket){
+                            break;
+                        }else{
+                            throw new ParseException(context, "Failed to parse json list value", e);
+                        }
                     }
                     JsonToken comma = context.next().get();
                     if(comma instanceof JsonToken.Comma){
