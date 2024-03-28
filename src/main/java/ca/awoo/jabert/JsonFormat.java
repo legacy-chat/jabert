@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import ca.awoo.fwoabl.Optional;
+import ca.awoo.fwoabl.OptionalNoneException;
 import ca.awoo.fwoabl.function.Functions;
 import ca.awoo.fwoabl.function.Predicate;
 import ca.awoo.jabert.SValue.*;
@@ -246,8 +247,7 @@ public class JsonFormat implements Format {
                                 original.append("\"");
                                 return new JsonToken.JsonString(original.toString(), value.toString());
                             } catch(ParseException e3){
-                                String s = context.next().or(' ').toString() + context.next().or(' ').toString();
-                                throw new ParseException(context, "Invalid escape sequence in string: " + s, e2);
+                                throw new ParseException(context, "Invalid escape sequence in string: " + original.toString(), e2);
                             }
                         }
                     }
@@ -281,7 +281,7 @@ public class JsonFormat implements Format {
     
     private final Parser<Character, JsonToken.Whitespace> whitespaceParser = new Parser<Character, JsonToken.Whitespace>() {
         public JsonToken.Whitespace parse(Context<Character> context) throws ParseException {
-            return new JsonToken.Whitespace(stringFold(many(oneOf(" \t\n\r"))).parse(context));
+            return new JsonToken.Whitespace(oneOf(" \t\n\r").parse(context).toString());
         }
     };
     
@@ -329,7 +329,7 @@ public class JsonFormat implements Format {
     private final Parser<JsonToken, SString> jsonStringParser = new Parser<JsonToken, SString>() {
         public SString parse(Context<JsonToken> context) throws ParseException {
             try {
-                Optional<JsonToken> token = context.next();
+                JsonToken token = context.next().get();
                 if(token instanceof JsonToken.JsonString){
                     JsonToken.JsonString js = (JsonToken.JsonString)token;
                     return new SString(js.value);
@@ -338,6 +338,8 @@ public class JsonFormat implements Format {
                 }
             } catch (StreamException e) {
                 throw new ParseException(context, "Stream exception while parsing json string", e);
+            } catch (OptionalNoneException e){
+                throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
     };
@@ -345,7 +347,7 @@ public class JsonFormat implements Format {
     private final Parser<JsonToken, SNumber> jsonNumberParser = new Parser<JsonToken, SNumber>() {
         public SNumber parse(Context<JsonToken> context) throws ParseException {
             try {
-                Optional<JsonToken> token = context.next();
+                JsonToken token = context.next().get();
                 if(token instanceof JsonToken.JsonNumber){
                     JsonToken.JsonNumber jn = (JsonToken.JsonNumber)token;
                     return new SNumber(jn.value);
@@ -354,6 +356,8 @@ public class JsonFormat implements Format {
                 }
             } catch (StreamException e) {
                 throw new ParseException(context, "Stream exception while parsing json number", e);
+            } catch (OptionalNoneException e){
+                throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
     };
@@ -361,7 +365,7 @@ public class JsonFormat implements Format {
     private final Parser<JsonToken, SBool> jsonBoolParser = new Parser<JsonToken, SBool>() {
         public SBool parse(Context<JsonToken> context) throws ParseException {
             try {
-                Optional<JsonToken> token = context.next();
+                JsonToken token = context.next().get();
                 if(token instanceof JsonToken.JsonTrue){
                     return new SBool(true);
                 }else if(token instanceof JsonToken.JsonFalse){
@@ -371,6 +375,8 @@ public class JsonFormat implements Format {
                 }
             } catch (StreamException e) {
                 throw new ParseException(context, "Stream exception while parsing json boolean", e);
+            } catch (OptionalNoneException e){
+                throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
     };
@@ -378,7 +384,7 @@ public class JsonFormat implements Format {
     private final Parser<JsonToken, SNull> jsonNullParser = new Parser<JsonToken, SNull>() {
         public SNull parse(Context<JsonToken> context) throws ParseException {
             try {
-                Optional<JsonToken> token = context.next();
+                JsonToken token = context.next().get();
                 if(token instanceof JsonToken.JsonNull){
                     return new SNull();
                 }else{
@@ -386,6 +392,8 @@ public class JsonFormat implements Format {
                 }
             } catch (StreamException e) {
                 throw new ParseException(context, "Stream exception while parsing json null", e);
+            } catch (OptionalNoneException e){
+                throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
     };
@@ -393,7 +401,7 @@ public class JsonFormat implements Format {
     private final Parser<JsonToken, SList> jsonListParser = new Parser<JsonToken, SList>() {
         public SList parse(Context<JsonToken> context) throws ParseException {
             try {
-                Optional<JsonToken> openBracket = context.next();
+                JsonToken openBracket = context.next().get();
                 if(!(openBracket instanceof JsonToken.OpenBracket)){
                     throw new ParseException(context, "Expected an open bracket token, but got: " + openBracket.getClass().getName());
                 }
@@ -405,7 +413,7 @@ public class JsonFormat implements Format {
                     } catch(ParseException e){
                         throw new ParseException(context, "Failed to parse json list value", e);
                     }
-                    Optional<JsonToken> comma = context.next();
+                    JsonToken comma = context.next().get();
                     if(comma instanceof JsonToken.Comma){
                         continue;
                     }else if(comma instanceof JsonToken.CloseBracket){
@@ -417,6 +425,8 @@ public class JsonFormat implements Format {
                 return values;
             } catch (StreamException e) {
                 throw new ParseException(context, "Stream exception while parsing json list", e);
+            } catch (OptionalNoneException e){
+                throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
     };
@@ -424,7 +434,7 @@ public class JsonFormat implements Format {
     private final Parser<JsonToken, SObject> jsonObjectParser = new Parser<JsonToken, SObject>() {
         public SObject parse(Context<JsonToken> context) throws ParseException {
             try {
-                Optional<JsonToken> openBrace = context.next();
+                JsonToken openBrace = context.next().get();
                 if(!(openBrace instanceof JsonToken.OpenBrace)){
                     throw new ParseException(context, "Expected an open brace token, but got: " + openBrace.getClass().getName());
                 }
@@ -432,7 +442,7 @@ public class JsonFormat implements Format {
                 while(true){
                     try{
                         SString key = jsonStringParser.parse(context);
-                        Optional<JsonToken> colon = context.next();
+                        JsonToken colon = context.next().get();
                         if(!(colon instanceof JsonToken.Colon)){
                             throw new ParseException(context, "Expected a colon token, but got: " + colon.getClass().getName());
                         }
@@ -445,7 +455,7 @@ public class JsonFormat implements Format {
                     } catch(ParseException e){
                         throw new ParseException(context, "Failed to parse json object key", e);
                     }
-                    Optional<JsonToken> comma = context.next();
+                    JsonToken comma = context.next().get();
                     if(comma instanceof JsonToken.Comma){
                         continue;
                     }else if(comma instanceof JsonToken.CloseBrace){
@@ -457,6 +467,8 @@ public class JsonFormat implements Format {
                 return values;
             } catch (StreamException e) {
                 throw new ParseException(context, "Stream exception while parsing json object", e);
+            } catch (OptionalNoneException e){
+                throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
     };

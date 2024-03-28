@@ -2,7 +2,7 @@ package ca.awoo.jabert;
 
 import ca.awoo.jabert.SValue.*;
 
-public class PrimativeSerializer implements Serializer<Object> {
+public class PrimativeSerializer implements Serializer {
 
     public SValue serialize(Object t) throws SerializationException {
         if(t instanceof Long) {

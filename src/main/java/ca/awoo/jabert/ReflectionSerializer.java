@@ -14,14 +14,14 @@ import ca.awoo.jabert.SValue.*;
  * This serializer gets the fields of an object using reflection and serializes them into an SValue. It then deserializes the fields from an SValue using reflection.
  * </p>
  */
-public class ReflectionSerializer implements Serializer<Object> {
-    private final Serializer<Object> baseSerializer;
+public class ReflectionSerializer implements Serializer {
+    private final Serializer baseSerializer;
 
     /**
      * Creates a new ReflectionSerializer with the given base serializer.
      * @param baseSerializer The serializer to use to serialize the fields of an object. The base serializer will most likely be a compound serializer with this serializer as a part of it.
      */
-    public ReflectionSerializer(Serializer<Object> baseSerializer) {
+    public ReflectionSerializer(Serializer baseSerializer) {
         this.baseSerializer = baseSerializer;
     }
 

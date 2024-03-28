@@ -3,10 +3,10 @@ package ca.awoo.jabert;
 import java.lang.reflect.Array;
 import ca.awoo.jabert.SValue.SList;
 
-public class ArraySerializer implements Serializer<Object> {
-    private final Serializer<Object> baseSerializer;
+public class ArraySerializer implements Serializer {
+    private final Serializer baseSerializer;
 
-    public ArraySerializer(Serializer<Object> baseSerializer) {
+    public ArraySerializer(Serializer baseSerializer) {
         this.baseSerializer = baseSerializer;
     }
 

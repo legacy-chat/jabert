@@ -3,16 +3,22 @@ package ca.awoo.jabert;
 /**
  * A serializer for serializable objects.
  */
-public class SerializableSerializer implements Serializer<Serializable>{
+public class SerializableSerializer implements Serializer{
 
-    public SValue serialize(Serializable t) throws SerializationException{
-        return t.serialize();
+    public SValue serialize(Object t) throws SerializationException{
+        if(!(t instanceof Serializable)){
+            throw new SerializationException("Object " + t.getClass().getName() + " does not implement Serializable");
+        }
+        return ((Serializable)t).serialize();
     }
 
-    public Serializable deserialize(SValue sv, Class<? extends Serializable> clazz) throws SerializationException {
+    public Object deserialize(SValue sv, Class<? extends Object> clazz) throws SerializationException {
         try {
-            Serializable s = clazz.newInstance();
-            s.deserialize(sv);
+            Object s = clazz.newInstance();
+            if(!(s instanceof Serializable)){
+                throw new SerializationException("Class " + clazz.getName() + " does not implement Serializable");
+            }
+            ((Serializable)s).deserialize(sv);
             return s;
         } catch (InstantiationException e) {
             throw new SerializationException("Could not instantiate class " + clazz.getName(), e);

@@ -5,12 +5,12 @@ import java.util.Set;
 
 import ca.awoo.fwoabl.function.Predicate;
 
-public class CompoundSerializer implements Serializer<Object> {
+public class CompoundSerializer implements Serializer{
     private static class SerializationOption{
         private final Predicate<Class<?>> predicate;
-        private final Serializer<Object> serializer;
+        private final Serializer serializer;
 
-        public SerializationOption(Predicate<Class<?>> predicate, Serializer<Object> serializer) {
+        public SerializationOption(Predicate<Class<?>> predicate, Serializer serializer) {
             this.predicate = predicate;
             this.serializer = serializer;
         }
@@ -19,7 +19,7 @@ public class CompoundSerializer implements Serializer<Object> {
             return predicate.invoke(clazz);
         }
 
-        public Serializer<Object> getSerializer(){
+        public Serializer getSerializer(){
             return serializer;
         }
 
@@ -56,13 +56,13 @@ public class CompoundSerializer implements Serializer<Object> {
     }
 
     private final Set<SerializationOption> options = new HashSet<SerializationOption>();
-    private Serializer<Object> defaultSerializer;
+    private Serializer defaultSerializer;
 
-    public void addOption(Predicate<Class<?>> predicate, Serializer<Object> serializer){
+    public void addOption(Predicate<Class<?>> predicate, Serializer serializer){
         options.add(new SerializationOption(predicate, serializer));
     }
 
-    public void setDefaultSerializer(Serializer<Object> serializer){
+    public void setDefaultSerializer(Serializer serializer){
         defaultSerializer = serializer;
     }
 
@@ -93,7 +93,7 @@ public class CompoundSerializer implements Serializer<Object> {
         }
     }
 
-    private Serializer<Object> getSerializer(Class<?> clazz) throws SerializationException{
+    private Serializer getSerializer(Class<?> clazz) throws SerializationException{
         for(SerializationOption option : options){
             if(option.matches(clazz)){
                 return option.getSerializer();

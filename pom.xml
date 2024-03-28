@@ -7,8 +7,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 <version>0.0.1-SNAPSHOT</version>
 
 <properties>
-    <maven.compiler.source>1.5</maven.compiler.source>
-    <maven.compiler.target>1.5</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
 </properties>
 
 <repositories>
@@ -28,7 +28,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     <dependency>
 	    <groupId>com.github.legacy-chat</groupId>
 	    <artifactId>praser</artifactId>
-	    <version>70e6ac091e</version>
+	    <version>431b8147c6</version>
 	</dependency>
     <dependency>
         <groupId>com.github.legacy-chat</groupId>
