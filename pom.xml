@@ -28,7 +28,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
     <dependency>
 	    <groupId>com.github.legacy-chat</groupId>
 	    <artifactId>praser</artifactId>
-	    <version>4b37e4f1c1</version>
+	    <version>ffdada20d4</version>
 	</dependency>
     <dependency>
         <groupId>com.github.legacy-chat</groupId>

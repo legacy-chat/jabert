@@ -196,9 +196,9 @@ public class JsonFormat implements Format {
     private final Parser<Character, JsonToken.JsonString> stringParser = new Parser<Character, JsonToken.JsonString>() {
         @SuppressWarnings("unchecked")
         public JsonToken.JsonString parse(Context<Character> context) throws ParseException {
+            StringBuilder original = new StringBuilder();
             try{
                 tag("\"").parse(context);
-                StringBuilder original = new StringBuilder();
                 original.append("\"");
                 StringBuilder value = new StringBuilder();
                 Parser<Character, Character> normalChar = not(or(tag("\\"), tag("\"")));
@@ -251,7 +251,7 @@ public class JsonFormat implements Format {
                     }
                 }
             } catch(ParseException e){
-                throw new ParseException(context, "Failed to parse json string", e);
+                throw new ParseException(context, "Failed to parse json string (" + original.toString() + ")", e);
             } catch(StreamException e){
                 throw new ParseException(context, "Stream exception while parsing json string", e);
             }
