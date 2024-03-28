@@ -256,6 +256,11 @@ public class JsonFormat implements Format {
                 throw new ParseException(context, "Stream exception while parsing json string", e);
             }
         }
+
+        @Override
+        public String toString(){
+            return "JsonStringToken";
+        }
     };
     
     private final Parser<Character, JsonToken.JsonNumber> numberParser = new Parser<Character,JsonFormat.JsonToken.JsonNumber>() {
@@ -274,12 +279,44 @@ public class JsonFormat implements Format {
                 throw new ParseException(context, "Failed to parse json number: " + number, e);
             }
         }
+
+        @Override
+        public String toString(){
+            return "JsonNumberToken";
+        }
         
+    };
+
+    private final Parser<Character, JsonToken.JsonTrue> trueParser = new Parser<Character,JsonFormat.JsonToken.JsonTrue>() {
+        public JsonToken.JsonTrue parse(Context<Character> context) throws ParseException {
+            return new JsonToken.JsonTrue(tag("true").parse(context));
+        }
+
+        @Override
+        public String toString(){
+            return "JsonTrue";
+        }
+    };
+
+    private final Parser<Character, JsonToken.JsonFalse> falseParser = new Parser<Character,JsonFormat.JsonToken.JsonFalse>() {
+        public JsonToken.JsonFalse parse(Context<Character> context) throws ParseException {
+            return new JsonToken.JsonFalse(tag("false").parse(context));
+        }
+
+        @Override
+        public String toString(){
+            return "JsonFalse";
+        }
     };
     
     private final Parser<Character, JsonToken.Whitespace> whitespaceParser = new Parser<Character, JsonToken.Whitespace>() {
         public JsonToken.Whitespace parse(Context<Character> context) throws ParseException {
             return new JsonToken.Whitespace(oneOf(" \t\n\r").parse(context).toString());
+        }
+
+        @Override
+        public String toString(){
+            return "Whitespace";
         }
     };
     
@@ -287,11 +324,21 @@ public class JsonFormat implements Format {
         public JsonToken.OpenBracket parse(Context<Character> context) throws ParseException {
             return new JsonToken.OpenBracket(tag("[").parse(context));
         }
+
+        @Override
+        public String toString(){
+            return "OpenBracket";
+        }
     };
     
     private final Parser<Character, JsonToken.CloseBracket> closeBracketParser = new Parser<Character, JsonToken.CloseBracket>() {
         public JsonToken.CloseBracket parse(Context<Character> context) throws ParseException {
             return new JsonToken.CloseBracket(tag("]").parse(context));
+        }
+
+        @Override
+        public String toString(){
+            return "CloseBracket";
         }
     };
     
@@ -299,11 +346,21 @@ public class JsonFormat implements Format {
         public JsonToken.OpenBrace parse(Context<Character> context) throws ParseException {
             return new JsonToken.OpenBrace(tag("{").parse(context));
         }
+
+        @Override
+        public String toString(){
+            return "OpenBrace";
+        }
     };
     
     private final Parser<Character, JsonToken.CloseBrace> closeBraceParser = new Parser<Character, JsonToken.CloseBrace>() {
         public JsonToken.CloseBrace parse(Context<Character> context) throws ParseException {
             return new JsonToken.CloseBrace(tag("}").parse(context));
+        }
+
+        @Override
+        public String toString(){
+            return "CloseBrace";
         }
     };
     
@@ -311,11 +368,21 @@ public class JsonFormat implements Format {
         public JsonToken.Colon parse(Context<Character> context) throws ParseException {
             return new JsonToken.Colon(tag(":").parse(context));
         }
+
+        @Override
+        public String toString(){
+            return "Colon";
+        }
     };
     
     private final Parser<Character, JsonToken.Comma> commaParser = new Parser<Character, JsonToken.Comma>() {
         public JsonToken.Comma parse(Context<Character> context) throws ParseException {
             return new JsonToken.Comma(tag(",").parse(context));
+        }
+
+        @Override
+        public String toString(){
+            return "Comma";
         }
     };
     
@@ -340,6 +407,11 @@ public class JsonFormat implements Format {
                 throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
+
+        @Override
+        public String toString(){
+            return "JsonString";
+        }
     };
 
     private final Parser<JsonToken, SNumber> jsonNumberParser = new Parser<JsonToken, SNumber>() {
@@ -357,6 +429,11 @@ public class JsonFormat implements Format {
             } catch (OptionalNoneException e){
                 throw new ParseException(context, "Unexpected end of stream", e);
             }
+        }
+
+        @Override
+        public String toString(){
+            return "JsonNumber";
         }
     };
 
@@ -377,6 +454,11 @@ public class JsonFormat implements Format {
                 throw new ParseException(context, "Unexpected end of stream", e);
             }
         }
+
+        @Override
+        public String toString(){
+            return "JsonBool";
+        }
     };
 
     private final Parser<JsonToken, SNull> jsonNullParser = new Parser<JsonToken, SNull>() {
@@ -393,6 +475,11 @@ public class JsonFormat implements Format {
             } catch (OptionalNoneException e){
                 throw new ParseException(context, "Unexpected end of stream", e);
             }
+        }
+
+        @Override
+        public String toString(){
+            return "JsonNull";
         }
     };
 
@@ -426,6 +513,11 @@ public class JsonFormat implements Format {
             } catch (OptionalNoneException e){
                 throw new ParseException(context, "Unexpected end of stream", e);
             }
+        }
+
+        @Override
+        public String toString(){
+            return "JsonList";
         }
     };
 
@@ -470,6 +562,11 @@ public class JsonFormat implements Format {
             } catch (OptionalNoneException e){
                 throw new ParseException(context, "Unexpected end of stream", e);
             }
+        }
+
+        @Override
+        public String toString(){
+            return "JsonObject";
         }
     };
 
