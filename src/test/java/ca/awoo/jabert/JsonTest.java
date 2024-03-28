@@ -7,6 +7,8 @@ import java.io.ByteArrayOutputStream;
 
 import org.junit.Test;
 
+import ca.awoo.jabert.SValue.*;
+
 public class JsonTest {
     public static class TestClass{
         public String name;
@@ -58,5 +60,39 @@ public class JsonTest {
         SValue sv2 = json.parse(in);
         TestClass test2 = (TestClass)s.deserialize(sv2, TestClass.class);
         assertEquals(test, test2);
+    }
+
+    @Test
+    public void testList() throws Exception{
+        Format json = new JsonFormat("UTF-8");
+        SList list = new SList(new SNumber(1), new SNumber(2), new SNumber(3), new SNumber(4), new SNumber(5));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        json.emit(list, out);
+        System.out.println(out.toString("UTF-8"));
+        byte[] bytes = out.toByteArray();
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        SValue sv = json.parse(in);
+        SList list2 = (SList)sv;
+        assertEquals(5, list2.size());
+        for(int i = 0; i < 5; i++){
+            assertEquals(i+1, ((SNumber)list2.get(i)).intValue());
+        }
+    }
+
+    @Test
+    public void testObject() throws Exception{
+        Format json = new JsonFormat("UTF-8");
+        SObject obj = new SObject();
+        obj.put("name", new SString("test"));
+        obj.put("age", new SNumber(10));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        json.emit(obj, out);
+        System.out.println(out.toString("UTF-8"));
+        byte[] bytes = out.toByteArray();
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        SValue sv = json.parse(in);
+        SObject obj2 = (SObject)sv;
+        assertEquals("test", ((SString)obj2.get("name")).value);
+        assertEquals(10, ((SNumber)obj2.get("age")).intValue());
     }
 }
