@@ -112,6 +112,10 @@ public abstract class SValue {
         public void put(String key, SValue value) {
             this.value.put(key, value);
         }
+
+        public int size() {
+            return value.size();
+        }
     }
     public static class SNull extends SValue {
     }

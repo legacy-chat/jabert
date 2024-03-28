@@ -387,7 +387,7 @@ public class JsonFormat implements Format {
     };
     
     @SuppressWarnings("unchecked")
-    private final Parser<Character, JsonToken> jsonTokenParser = or(stringParser, numberParser, whitespaceParser, openBracketParser, closeBracketParser, openBraceParser, closeBraceParser, colonParser, commaParser);
+    private final Parser<Character, JsonToken> jsonTokenParser = or(stringParser, numberParser, trueParser, falseParser, whitespaceParser, openBracketParser, closeBracketParser, openBraceParser, closeBraceParser, colonParser, commaParser);
     
     private final Parser<JsonToken, SValue> jsonParser;
 
@@ -532,9 +532,17 @@ public class JsonFormat implements Format {
                 while(true){
                     SString key;
                     try{
-                        key = jsonStringParser.parse(context);
+                        Context<JsonToken> clone = context.clone();
+                        key = jsonStringParser.parse(clone);
+                        context.skip(clone.getOffset() - context.getOffset());
                     } catch(ParseException e){
-                        throw new ParseException(context, "Failed to parse json object key", e);
+                        //See if we have a close brace token from an empty object
+                        JsonToken next = context.next().get();
+                        if(next instanceof JsonToken.CloseBrace){
+                            break;
+                        }else{
+                            throw new ParseException(context, "Failed to parse json object key", e);
+                        }
                     }
                     JsonToken colon = context.next().get();
                     if(!(colon instanceof JsonToken.Colon)){

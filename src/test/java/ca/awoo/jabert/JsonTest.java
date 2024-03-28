@@ -95,4 +95,18 @@ public class JsonTest {
         assertEquals("test", ((SString)obj2.get("name")).value);
         assertEquals(10, ((SNumber)obj2.get("age")).intValue());
     }
+
+    @Test
+    public void testEmptyObject() throws Exception{
+        Format json = new JsonFormat("UTF-8");
+        SObject obj = new SObject();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        json.emit(obj, out);
+        System.out.println(out.toString("UTF-8"));
+        byte[] bytes = out.toByteArray();
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        SValue sv = json.parse(in);
+        SObject obj2 = (SObject)sv;
+        assertEquals(0, obj2.size());
+    }
 }
