@@ -33,6 +33,12 @@ public final class Serializers {
                 return Serializable.class.isAssignableFrom(t);
             }
         }, ss);
+        SValueSerializer svs = new SValueSerializer();
+        cs.addOption(new Predicate<Class<?>>() {
+            public boolean invoke(Class<?> t) {
+                return SValue.class.isAssignableFrom(t);
+            }
+        }, svs);
         ReflectionSerializer rs = new ReflectionSerializer(cs);
         cs.setDefaultSerializer(rs);
         return cs;
