@@ -145,4 +145,19 @@ public class ReflectionSerializerTest {
         assertTrue(tc.x instanceof Optional.None);
     }
 
+    public static class BasicClass{
+        public String s;
+    }
+
+    @Test
+    public void nullFieldTest() throws Exception {
+        Serializer s = Serializers.defaultSerializer();
+        BasicClass bc = new BasicClass();
+        SValue sv = s.serialize(bc);
+        assertTrue(sv instanceof SObject);
+        SObject so = (SObject) sv;
+        assertTrue(so.has("s"));
+        assertTrue(so.get("s") instanceof SValue.SNull);
+    }
+
 }

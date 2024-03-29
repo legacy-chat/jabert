@@ -54,6 +54,11 @@ public class ReflectionSerializer implements Serializer {
             f.setAccessible(true);
             try {
                 Object value = f.get(t);
+                if(value == null){
+                    //The field is null, we write null
+                    so.put(f.getName(), new SNull());
+                    continue;
+                }
                 if(value.equals(t)){
                     throw new SerializationException("Cannot serialize object that contains itself: " + t);
                 }
