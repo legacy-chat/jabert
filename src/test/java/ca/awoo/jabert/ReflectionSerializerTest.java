@@ -1,10 +1,15 @@
 package ca.awoo.jabert;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 
 import org.junit.Test;
 
+import ca.awoo.fwoabl.Optional;
 import ca.awoo.fwoabl.function.Predicate;
+import ca.awoo.jabert.SValue.SObject;
 
 public class ReflectionSerializerTest {
 
@@ -83,6 +88,61 @@ public class ReflectionSerializerTest {
         SValue sv = cs.serialize(tc);
         TestClass tc2 = (TestClass) cs.deserialize(sv, TestClass.class);
         assert(tc.equals(tc2));
+    }
+
+    public static class NullTestClass {
+        @SerializeAsNull
+        public Optional<Integer> x;
+    }
+
+    @Test
+    public void serializeNoneNull() throws Exception {
+        Serializer s = Serializers.defaultSerializer();
+        NullTestClass tc = new NullTestClass();
+        tc.x = new Optional.None<Integer>();
+        SValue sv = s.serialize(tc);
+        assertTrue(sv instanceof SObject);
+        SObject so = (SObject) sv;
+        assertTrue(so.get("x") instanceof SValue.SNull);
+    }
+
+    @Test
+    public void serializeSome() throws Exception {
+        Serializer s = Serializers.defaultSerializer();
+        NullTestClass tc = new NullTestClass();
+        tc.x = new Optional.Some<Integer>(5);
+        SValue sv = s.serialize(tc);
+        assertTrue(sv instanceof SObject);
+        SObject so = (SObject) sv;
+        assertTrue(so.get("x") instanceof SValue.SNumber);
+        assertEquals(so.get("x"), new SValue.SNumber(5));
+    }
+
+    @Test
+    public void deserializeNoneNull() throws Exception {
+        Serializer s = Serializers.defaultSerializer();
+        SObject so = new SObject();
+        so.put("x", new SValue.SNull());
+        NullTestClass tc = (NullTestClass) s.deserialize(so, NullTestClass.class);
+        assertTrue(tc.x instanceof Optional.None);
+    }
+
+    @Test
+    public void deserializeSome() throws Exception {
+        Serializer s = Serializers.defaultSerializer();
+        SObject so = new SObject();
+        so.put("x", new SValue.SNumber(5));
+        NullTestClass tc = (NullTestClass) s.deserialize(so, NullTestClass.class);
+        assertTrue(tc.x instanceof Optional.Some);
+        assertEquals(tc.x.get(), new Integer(5));
+    }
+
+    @Test
+    public void deserializeNoneNothing() throws Exception {
+        Serializer s = Serializers.defaultSerializer();
+        SObject so = new SObject();
+        NullTestClass tc = (NullTestClass) s.deserialize(so, NullTestClass.class);
+        assertTrue(tc.x instanceof Optional.None);
     }
 
 }

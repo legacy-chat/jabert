@@ -62,8 +62,12 @@ public class ReflectionSerializer implements Serializer {
                     Optional<?> opt = (Optional<?>) value;
                     if(opt.isSome()){
                         so.put(f.getName(), baseSerializer.serialize(opt.get()));
+                    }else{
+                        //The field is optional and None, we only put it in if we were told to by an annotation
+                        if(f.getAnnotation(SerializeAsNull.class) != null){
+                            so.put(f.getName(), new SNull());
+                        }
                     }
-                    //If the field is optional and not present, don't put it in the final value
                 } else if (Map.class.isAssignableFrom(f.getType())) {
                     Map<?, ?> map = (Map<?, ?>) value;
                     ParameterizedType type = (ParameterizedType)f.getGenericType();
@@ -119,10 +123,16 @@ public class ReflectionSerializer implements Serializer {
                     f.setAccessible(true);
                     if(Optional.class.isAssignableFrom(f.getType())){
                         if(so.has(f.getName())){
-                            //If the field is an optional and the value is present, deserialize the value
-                            ParameterizedType type = (ParameterizedType)f.getGenericType();
-                            Class<?> optionalType = (Class<?>)type.getActualTypeArguments()[0];
-                            f.set(t, new Optional.Some<Object>(baseSerializer.deserialize(so.get(f.getName()), optionalType)));
+                            SValue value = so.get(f.getName());
+                            if(value instanceof SNull){
+                                //Use optionals to handle nulls in apis
+                                f.set(t, new Optional.None<Object>());
+                            }else{
+                                //If the field is an optional and the value is present, deserialize the value
+                                ParameterizedType type = (ParameterizedType)f.getGenericType();
+                                Class<?> optionalType = (Class<?>)type.getActualTypeArguments()[0];
+                                f.set(t, new Optional.Some<Object>(baseSerializer.deserialize(so.get(f.getName()), optionalType)));
+                            }
                         }else{
                             //If the field is an optional and the value is not present, set the field to None
                             f.set(t, new Optional.None<Object>());
