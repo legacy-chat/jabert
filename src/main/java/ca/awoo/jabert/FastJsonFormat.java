@@ -104,13 +104,20 @@ public class FastJsonFormat implements Format{
         }
     }
 
-    private SValue parse(BufferedReader r) throws IOException, FormatException {
+    private int readNotSpace(BufferedReader r) throws IOException {
+        r.mark(1);
         int next = r.read();
         offset++;
         while(Character.isWhitespace(next)){
+            r.mark(1);
             next = r.read();
             offset++;
         }
+        return next;
+    }
+
+    private SValue parse(BufferedReader r) throws IOException, FormatException {
+        int next = readNotSpace(r);
         SValue value;
         switch(next){
             case -1:
@@ -153,16 +160,6 @@ public class FastJsonFormat implements Format{
                     throw new FormatException("Unexpected character: " + (char)next + " at " + offset);
                 }
         }
-        r.mark(1);
-        next = r.read();
-        offset++;
-        while(Character.isWhitespace(next)){
-            r.mark(1);
-            next = r.read();
-            offset++;
-        }
-        r.reset();
-        offset--;
         return value;
     }
 
@@ -258,9 +255,7 @@ public class FastJsonFormat implements Format{
 
     private SList parseList(BufferedReader r) throws IOException, FormatException {
         SList l = new SList();
-        r.mark(1);
-        int next = r.read();
-        offset++;
+        int next = readNotSpace(r);
         if(next == ']'){
             return l;
         }
@@ -268,8 +263,7 @@ public class FastJsonFormat implements Format{
         offset--;
         while(true){
             l.value.add(parse(r));
-            next = r.read();
-            offset++;
+            next = readNotSpace(r);
             if(next == ']'){
                 return l;
             }else if(next != ','){
@@ -281,28 +275,25 @@ public class FastJsonFormat implements Format{
     private SObject parseObject(BufferedReader r) throws IOException, FormatException {
         SObject o = new SObject();
         r.mark(1);
-        int next = r.read();
-        offset++;
+        int next = readNotSpace(r);
         if(next == '}'){
             return o;
         }
         r.reset();
         offset--;
         while(true){
-            next = r.read();
-            offset++;
+            next = readNotSpace(r);
             if(next != '\"'){
                 throw new FormatException("Expected '\"', got " + (char)next + " at " + offset);
             }
             SString key = parseString(r);
-            next = r.read();
+            next = readNotSpace(r);
             if(next != ':'){
                 throw new FormatException("Expected ':', got " + (char)next + " after \"" + escape(key.value) + "\" at " + offset);
             }
             SValue value = parse(r);
             o.value.put(key.value, value);
-            next = r.read();
-            offset++;
+            next = readNotSpace(r);
             if(next == '}'){
                 return o;
             }else if(next != ','){
