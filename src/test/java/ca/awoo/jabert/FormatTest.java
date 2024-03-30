@@ -14,26 +14,50 @@ import ca.awoo.jabert.SValue.*;
 public class FormatTest {
 
     @Test
-    public void testJson() throws Exception{
+    public void testJson() throws Exception {
         testAll(new JsonFormat("UTF-8"));
     }
 
-    public void testValue(Format format, SValue sv) throws FormatException{
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        format.emit(sv, out);
-        byte[] bytes = out.toByteArray();
-        SValue sv2 = format.parse(new ByteArrayInputStream(bytes));
-        assertEquals("test" + sv.toString() + " on " + format.toString(), sv, sv2);
+    @Test
+    public void testFastJson() throws Exception {
+        testAll(new FastJsonFormat("UTF-8"));
     }
 
-    public void testAll(Format format) throws FormatException{
+    @Test
+    public void testSlowToFast() throws Exception {
+        testAll(new JsonFormat("UTF-8"), new FastJsonFormat("UTF-8"));
+    }
+
+    public void testValue(Format emitter, Format parser, SValue sv) throws Exception{
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        emitter.emit(sv, out);
+        byte[] bytes = out.toByteArray();
+        SValue sv2;
+        try{
+            sv2 = parser.parse(new ByteArrayInputStream(bytes));
+        }catch(Exception e){
+            System.out.println("Failed to parse " + new String(bytes) + " on " + parser.toString());
+            throw e;
+        }
+        assertEquals("test" + new String(bytes) + " on " + parser.toString(), sv, sv2);
+    }
+
+    public void testValue(Format format, SValue sv) throws Exception{
+        testValue(format, format, sv);
+    }
+
+    public void testAll(Format emitter, Format parser) throws Exception{
         List<SValue> values = everyValue(3);
         for(SValue value : values){
-            testValue(format, value);
+            testValue(emitter, parser, value);
         }
     }
 
-    private List<SValue> everyValue(int maxDepth){
+    public void testAll(Format format) throws Exception{
+        testAll(format, format);
+    }
+
+    public static List<SValue> everyValue(int maxDepth){
         List<SValue> everyValue = new ArrayList<SValue>();
         everyValue.add(new SNumber(0));
         everyValue.add(new SNumber(1));
